@@ -21,6 +21,7 @@
     "koa": "^1.1.2",
     "koa-bodyparser": "^2.0.1",
     "path-to-regexp": "^1.2.1",
+    "uuid-base62": "^0.1.0",
     "yargs": "^3.31.0"
   }
 }

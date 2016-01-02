@@ -3,6 +3,7 @@ import * as AWS from 'aws-sdk';
 import koa from 'koa';
 import pathToRegexp from 'path-to-regexp';
 import bodyParser from 'koa-bodyparser';
+import uuidBase62 from 'uuid-base62';
 
 async function getRoutes(dynamoDbDoc, tableName) {
   var params = {
@@ -14,14 +15,14 @@ async function getRoutes(dynamoDbDoc, tableName) {
   };
   let data = await dynamoDbDoc.scanPromised(params);
   let result = [];
-  for(let item of data.Items) {
+  for (let item of data.Items) {
     result.push(item);
   }
   return result;
 }
 
 function matchMethod(methods, requestMethod) {
-  if(methods) {
+  if (methods) {
     for (let method of methods.values) {
       if (method === '*' || requestMethod === method) {
         return true;
@@ -32,7 +33,7 @@ function matchMethod(methods, requestMethod) {
 }
 
 function matchHost(hosts, requestHost) {
-  if(hosts) {
+  if (hosts) {
     for (let host of hosts.values) {
       if (host === '*' || requestHost === method) {
         return true;
@@ -68,14 +69,24 @@ export async function run(logger, args) {
   let lambda = promisifyAll(new AWS.Lambda(), {suffix: 'Promised'});
 
   var routes = await getRoutes(dynamoDbDoc, args.DynamoTable);
-  logger.info(routes);
 
   let app = koa();
   app.use(bodyParser());
   app.proxy = true;
 
+  app.use(function *(next) {
+    this.logger = logger.withContext(uuidBase62.v4());
+    yield next;
+  });
+
+  app.use(function *(next) {
+    var start = new Date();
+    yield next;
+    var ms = new Date() - start;
+    this.logger.log(`${this.method} ${this.url} ${ms}ms`);
+  });
+
   app.use(function *() {
-    logger.info(this.request.path);
     if (this.request.method === 'GET' && this.request.path === '/status') {
       this.body = 'OK';
       return;
@@ -99,7 +110,7 @@ export async function run(logger, args) {
         Payload: JSON.stringify(payload)
       };
 
-      if(route['LambdaQualifier']) {
+      if (route['LambdaQualifier']) {
         params.LambdaQualifier = route['LambdaQualifier'];
       }
       let lambdaResponse = yield lambda.invokePromised(params);
@@ -115,8 +126,10 @@ export async function run(logger, args) {
           let responsePayload = JSON.parse(lambdaResponse.Payload);
           this.set(responsePayload.headers || {});
           this.status = responsePayload.status || 200;
-          if(responsePayload.body) {
-            this.body = new Buffer(responsePayload.body, 'base64');
+          if (responsePayload.bodyBase64) {
+            this.body = new Buffer(responsePayload.bodyBase64, 'base64');
+          } else if (responsePayload.body) {
+            this.body = responsePayload.body;
           }
           return;
         case 'DryRun':

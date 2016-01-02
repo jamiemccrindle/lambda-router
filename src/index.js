@@ -3,6 +3,10 @@ import './babel.js';
 import { updateCloudformation } from './deploy';
 import { run } from './server';
 import yargs from 'yargs';
+import { newLogger } from './logging';
+import os from 'os';
+
+let logger = newLogger(console).withContext(os.hostname());
 
 var _ = yargs
   .usage('$0 command')
@@ -21,7 +25,7 @@ var _ = yargs
       .help('help')
       .argv;
 
-    await run(console, argv)
+    await run(logger, argv)
       .catch(function (error) {
         console.error(error);
       });
@@ -41,7 +45,7 @@ var _ = yargs
       .help('help')
       .argv;
 
-    await updateCloudformation(console, argv)
+    await updateCloudformation(logger, argv)
       .catch(function (error) {
         console.error(error);
       });
