@@ -6,4 +6,4 @@ ADD package.json /app/package.json
 
 WORKDIR /app
 
-CMD ["npm", "start"]
+ENTRYPOINT ["node", "lib/index.js"]

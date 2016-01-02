@@ -4,6 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
+    "start": "node lib/index.js",
     "cloudformation": "babel-node -- src/index.js cloudformation",
     "server": "babel-node -- src/index.js server"
   },
