@@ -100,7 +100,8 @@ export async function run(logger, args) {
         headers: this.request.headers,
         body: this.request.body,
         url: this.request.url,
-        ip: this.request.ip
+        path: this.request.path,
+        protocol: this.request.protocol
       }
 
       let params = {
@@ -125,7 +126,7 @@ export async function run(logger, args) {
         case 'RequestResponse':
           let responsePayload = JSON.parse(lambdaResponse.Payload);
           this.set(responsePayload.headers || {});
-          this.status = responsePayload.status || 200;
+          this.status = responsePayload.statusCode || 200;
           if (responsePayload.bodyBase64) {
             this.body = new Buffer(responsePayload.bodyBase64, 'base64');
           } else if (responsePayload.body) {
