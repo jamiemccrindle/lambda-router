@@ -1,4 +1,4 @@
-require('../babel.js');
+import './babel.js';
 
 import { updateCloudformation } from './deploy';
 import { run } from './server';
@@ -11,10 +11,17 @@ var _ = yargs
       .alias('t', 'DynamoTable')
       .alias('m', 'MaxBody')
       .demand(['t'])
+      .option('p', {
+        alias: 'Port',
+        demand: false,
+        default: 3000,
+        describe: 'Port',
+        type: 'number'
+      })
       .help('help')
       .argv;
 
-    await run(argv)
+    await run(console, argv)
       .catch(function (error) {
         console.error(error);
       });
@@ -34,7 +41,7 @@ var _ = yargs
       .help('help')
       .argv;
 
-    await updateCloudformation(argv)
+    await updateCloudformation(console, argv)
       .catch(function (error) {
         console.error(error);
       });

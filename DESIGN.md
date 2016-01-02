@@ -27,4 +27,4 @@ routing
 ### Blue / Green
 
 * Deploy new lambda function with new name / version
-* Update routing to point to new version...
+* Update routing to point to new version.

@@ -1,0 +1,33 @@
+{
+  "Id": {
+    "S": "a956f5a8-b18c-11e5-b861-28cfe91fa8f1"
+  },
+  "MatchMethods": {
+    "SS": [
+      "*"
+    ]
+  },
+  "MatchHosts": {
+    "SS": [
+      "*"
+    ]
+  },
+  "MatchPath": {
+    "S": "/*"
+  },
+  "Priority": {
+    "N": "100"
+  },
+  "LambdaFunctionName": {
+    "S": "test-FewerAdsLists-Z6NAR15C2ESS"
+  },
+  "LambdaInvocationType": {
+    "S": "RequestResponse"
+  },
+  "LambdaLogType": {
+    "S": "Tail"
+  },
+  "Enabled": {
+    "BOOL": true
+  }
+}

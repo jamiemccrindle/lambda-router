@@ -4,8 +4,8 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "cloudformation": "babel-node src/index.js cloudformation",
-    "server": "babel-node src/index.js server"
+    "cloudformation": "babel-node -- src/index.js cloudformation",
+    "server": "babel-node -- src/index.js server"
   },
   "author": "jamiemccrindle@gmail.com",
   "license": "Apache 2",
@@ -18,8 +18,8 @@
     "aws-sdk": "^2.2.22",
     "babel-polyfill": "^6.3.14",
     "bluebird": "^3.0.6",
-    "co-body": "^4.0.0",
     "koa": "^1.1.2",
+    "koa-bodyparser": "^2.0.1",
     "path-to-regexp": "^1.2.1",
     "yargs": "^3.31.0"
   }

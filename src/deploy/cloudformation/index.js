@@ -60,7 +60,8 @@ export default () => ({
   },
   Resources: {
     ECSCluster: {
-      Type: 'AWS::ECS::Cluster'
+      Type: 'AWS::ECS::Cluster',
+      DependsOn: 'RouterDynamoDBTable'
     },
     TaskDefinition: {
       Type: 'AWS::ECS::TaskDefinition',
@@ -70,7 +71,7 @@ export default () => ({
             Name: 'lambda-router',
             Cpu: '10',
             Essential: 'true',
-            Image: 'lambda-router',
+            Image: 'jamiemccrindle/lambda-router',
             Memory: '300',
             PortMappings: [
               {HostPort: 3000, ContainerPort: 3000}
@@ -107,14 +108,14 @@ export default () => ({
         LaunchConfigurationName: {Ref: 'ContainerInstances'},
         MinSize: '1',
         MaxSize: {Ref: 'MaxSize'},
-        DesiredCapacity: {Ref: 'DesiredCapacity'}
-      },
-      NotificationConfiguration: {
-        TopicARN: {Ref: 'NotificationTopic'},
-        NotificationTypes: ['autoscaling:EC2_INSTANCE_LAUNCH',
-          'autoscaling:EC2_INSTANCE_LAUNCH_ERROR',
-          'autoscaling:EC2_INSTANCE_TERMINATE',
-          'autoscaling:EC2_INSTANCE_TERMINATE_ERROR']
+        DesiredCapacity: {Ref: 'DesiredCapacity'},
+        NotificationConfigurations: [{
+          TopicARN: {Ref: 'NotificationTopic'},
+          NotificationTypes: ['autoscaling:EC2_INSTANCE_LAUNCH',
+            'autoscaling:EC2_INSTANCE_LAUNCH_ERROR',
+            'autoscaling:EC2_INSTANCE_TERMINATE',
+            'autoscaling:EC2_INSTANCE_TERMINATE_ERROR']
+        }]
       },
       CreationPolicy: {
         ResourceSignal: {
@@ -385,6 +386,16 @@ export default () => ({
                     'lambda:InvokeFunction'
                   ],
                   Resource: '*'
+                },
+                {
+                  Effect: 'Allow',
+                  Action: [
+                    "dynamodb:Query",
+                    "dynamodb:Scan"
+                  ],
+                  Resource: {'Fn::Join': ['', [
+                    'arn:aws:dynamodb:', {Ref: 'AWS::Region'}, ':', {Ref: 'AWS::AccountId'}, ':', 'table/', {Ref: 'AWS::StackName'}
+                  ]]}
                 }
               ]
             }
@@ -418,51 +429,11 @@ export default () => ({
           {
             "AttributeName": "Id",
             "AttributeType": "S"
-          },
-          {
-            "AttributeName": "MatchMethods",
-            "AttributeType": "STRING_SET"
-          },
-          {
-            "AttributeName": "MatchHosts",
-            "AttributeType": "STRING_SET"
-          },
-          {
-            "AttributeName": "MatchPath",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "LambdaFunctionName",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "LambdaInvocationType",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "LambdaQualifier",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "LambdaLogType",
-            "AttributeType": "S"
-          },
-          {
-            "AttributeName": "Priority",
-            "AttributeType": "N"
-          },
-          {
-            "AttributeName": "Enabled",
-            "AttributeType": "BOOL"
           }
         ],
         "KeySchema": [
           {
             "AttributeName": "Id",
-            "KeyType": "HASH"
-          },
-          {
-            "AttributeName": "Enabled",
             "KeyType": "HASH"
           }
         ],

@@ -1,14 +1,14 @@
-require('../babel.js');
-
 import { promisifyAll } from 'bluebird';
 import * as AWS from 'aws-sdk'
 import * as yargs from 'yargs';
 import { inspect } from 'util';
 import cf from './cloudformation';
 
-let cloudFormation = promisifyAll(new AWS.CloudFormation());
+export async function updateCloudformation(logger, args) {
 
-export async function updateCloudformation(args) {
+  let cloudFormation = promisifyAll(new AWS.CloudFormation(), {suffix: 'Promised'});
+
+  let stackName = args.StackName;
 
   let cloudFormationTemplate = cf();
 
@@ -35,7 +35,7 @@ export async function updateCloudformation(args) {
 
   var stackExists = true;
   try {
-    await cloudFormation.describeStacks({StackName: stackName});
+    await cloudFormation.describeStacksPromised({StackName: stackName});
   } catch (e) {
     if (e.code === 'ValidationError') {
       stackExists = false;
@@ -45,9 +45,13 @@ export async function updateCloudformation(args) {
   }
 
   if (stackExists) {
-    await cloudFormation.updateStack(params);
+    logger.info('updating stack', stackName);
+    let result = await cloudFormation.updateStackPromised(params);
+    logger.info('completed update', result);
   } else {
-    await cloudFormation.createStack(params);
+    logger.info('creating stack', stackName);
+    let result = await cloudFormation.createStackPromised(params);
+    logger.info('completed creation', result);
   }
 
 }
