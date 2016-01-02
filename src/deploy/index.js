@@ -8,7 +8,7 @@ import cf from './cloudformation';
 
 let cloudFormation = promisifyAll(new AWS.CloudFormation());
 
-async function updateCloudformation(args) {
+export async function updateCloudformation(args) {
 
   let cloudFormationTemplate = cf();
 
@@ -51,29 +51,3 @@ async function updateCloudformation(args) {
   }
 
 }
-
-var _ = yargs
-  .usage('$0 command')
-  .command('update-cloudformation', 'update-cloudformation', async function (yargs, argv) {
-    argv = yargs
-      .alias('s', 'StackName')
-      .alias('k', 'KeyName')
-      .alias('n', 'SubnetId')
-      .alias('c', 'DesiredCapacity')
-      .alias('m', 'MaxSize')
-      .alias('i', 'InstanceType')
-      .alias('l', 'SshLocation')
-      .alias('e', 'NotificationEmail')
-      .demand(['s', 'k', 'e'])
-      .help('help')
-      .argv;
-
-    await updateCloudformation(argv)
-      .catch(function (error) {
-        console.error(error);
-      });
-
-  })
-  .demand(1, 'must provide a valid command')
-  .help('help')
-  .argv;

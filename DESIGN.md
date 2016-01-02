@@ -13,10 +13,10 @@
 
 routing
     methods: list of methods to match or '*'
-    host: host matcher
+    hosts: host matcher
     uri: path-to-regexp matcher
-    lambda: name of lambda function
-    lambda_version: the version of the lambda function
+    lambda_function_name: name of lambda function
+    lambda_qualifier: the lambda qualifier
 
 ## Managing upgrades
 

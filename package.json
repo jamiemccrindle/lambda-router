@@ -4,7 +4,8 @@
   "description": "",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cloudformation": "babel-node src/index.js cloudformation",
+    "server": "babel-node src/index.js server"
   },
   "author": "jamiemccrindle@gmail.com",
   "license": "Apache 2",
