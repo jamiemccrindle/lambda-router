@@ -127,7 +127,6 @@ export async function run(logger, args) {
       return;
     } else {
       let route = match(routes, this.request);
-      logger.info(route);
       if (!route) {
         this.throw(404, 'Not Found')
       }
@@ -151,7 +150,6 @@ export async function run(logger, args) {
         params.LambdaQualifier = route['LambdaQualifier'];
       }
       let lambdaResponse = yield lambda.invokePromised(params);
-      console.log(lambdaResponse.Payload);
       if (lambdaResponse.FunctionError) {
         let errorMessage = lambdaResponse.LogResult ? new Buffer(lambdaResponse.LogResult, 'base64').toString() : 'Error';
         logger.error(errorMessage);
