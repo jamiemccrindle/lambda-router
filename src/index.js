@@ -17,13 +17,19 @@ try {
       argv = yargs
         .alias('t', 'DynamoTable')
         .alias('m', 'MaxBody')
-        .demand(['t'])
         .option('p', {
           alias: 'Port',
           demand: false,
           default: 3000,
           describe: 'Port',
           type: 'number'
+        })
+        .option('m', {
+          alias: 'Debug',
+          demand: false,
+          default: false,
+          describe: 'Debug',
+          type: 'boolean'
         })
         .option('r', {
           alias: 'DynamoRefreshSeconds',
@@ -45,21 +51,34 @@ try {
           describe: 'Cluster Processes',
           type: 'number'
         })
+        .check(argv => {
+          if(!argv.DynamoTable && !argv.Lambda) {
+            throw new Error('Either DynamoTable or Lambda need to be set');
+          }
+          return true;
+        })
         .help('help')
         .argv;
 
-      if (cluster.isMaster) {
-        // Fork workers.
-        for (var i = 0; i < argv.ClusterProcesses; i++) {
-          cluster.fork();
+      if(argv.ClusterProcesses > 1) {
+        if (cluster.isMaster) {
+          // Fork workers.
+          for (var i = 0; i < argv.ClusterProcesses; i++) {
+            cluster.fork(process.env);
+          }
+          cluster.on('exit', function (worker, code, signal) {
+            logger.log('worker ' + worker.process.pid + ' died');
+          });
+        } else {
+          run(logger, argv)
+            .catch(function (error) {
+              logger.error(error.stack);
+            });
         }
-        cluster.on('exit', function (worker, code, signal) {
-          console.log('worker ' + worker.process.pid + ' died');
-        });
       } else {
         run(logger, argv)
           .catch(function (error) {
-            console.error(error);
+            logger.error(error.stack);
           });
       }
 

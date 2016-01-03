@@ -72,9 +72,9 @@ export async function run(logger, args) {
   if (args.Lambda) {
     routes = [
       {
-        MatchMethods: ['*'],
-        MatchHosts: ['*'],
-        MatchPath: ['/*'],
+        MatchMethods: {values: ['*']},
+        MatchHosts: {values: ['*']},
+        MatchPath: '/*',
         Priority: 1000,
         LambdaFunctionName: args.Lambda,
         LambdaInvocationType: 'RequestResponse',
@@ -85,13 +85,29 @@ export async function run(logger, args) {
     routes = await getRoutes(dynamoDbDoc, args.DynamoTable);
     setInterval(() => {
       getRoutes(dynamoDbDoc, args.DynamoTable)
-        .then(freshRoutes => { routes = freshRoutes; })
+        .then(freshRoutes => {
+          routes = freshRoutes;
+        })
     }, args.DynamoRefreshSeconds)
   }
 
   let app = koa();
   app.use(bodyParser());
   app.proxy = true;
+
+  app.use(function *(next) {
+    try {
+      yield next;
+    } catch (err) {
+      this.status = err.status || 500;
+      if(args.Debug) {
+        this.body = err.message;
+      } else {
+        this.body = 'InternalServerError';
+      }
+      this.app.emit('error', err, this);
+    }
+  });
 
   app.use(function *(next) {
     this.logger = logger.withContext(uuidBase62.v4());
@@ -111,6 +127,7 @@ export async function run(logger, args) {
       return;
     } else {
       let route = match(routes, this.request);
+      logger.info(route);
       if (!route) {
         this.throw(404, 'Not Found')
       }
@@ -134,8 +151,11 @@ export async function run(logger, args) {
         params.LambdaQualifier = route['LambdaQualifier'];
       }
       let lambdaResponse = yield lambda.invokePromised(params);
+      console.log(lambdaResponse.Payload);
       if (lambdaResponse.FunctionError) {
-        this.throw(500, lambdaResponse.LogResult || 'Error');
+        let errorMessage = lambdaResponse.LogResult ? new Buffer(lambdaResponse.LogResult, 'base64').toString() : 'Error';
+        logger.error(errorMessage);
+        this.throw(500, errorMessage);
         return;
       }
       switch (route['LambdaInvocationType']) {
