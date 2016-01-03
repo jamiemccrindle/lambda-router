@@ -25,6 +25,19 @@ try {
           describe: 'Port',
           type: 'number'
         })
+        .option('r', {
+          alias: 'DynamoRefreshSeconds',
+          demand: false,
+          default: 60,
+          describe: 'How many seconds between calls to dynamo to get fresh routes',
+          type: 'number'
+        })
+        .option('l', {
+          alias: 'Lambda',
+          demand: false,
+          describe: 'Send all requests to this lambda',
+          type: 'string'
+        })
         .option('c', {
           alias: 'ClusterProcesses',
           demand: false,

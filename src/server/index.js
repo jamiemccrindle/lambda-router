@@ -68,7 +68,26 @@ export async function run(logger, args) {
   let dynamoDbDoc = promisifyAll(new AWS.DynamoDB.DocumentClient(), {suffix: 'Promised'});
   let lambda = promisifyAll(new AWS.Lambda(), {suffix: 'Promised'});
 
-  var routes = await getRoutes(dynamoDbDoc, args.DynamoTable);
+  var routes = [];
+  if (args.Lambda) {
+    routes = [
+      {
+        MatchMethods: ['*'],
+        MatchHosts: ['*'],
+        MatchPath: ['/*'],
+        Priority: 1000,
+        LambdaFunctionName: args.Lambda,
+        LambdaInvocationType: 'RequestResponse',
+        LambdaLogType: 'Tail'
+      }
+    ]
+  } else {
+    routes = await getRoutes(dynamoDbDoc, args.DynamoTable);
+    setInterval(() => {
+      getRoutes(dynamoDbDoc, args.DynamoTable)
+        .then(freshRoutes => { routes = freshRoutes; })
+    }, args.DynamoRefreshSeconds)
+  }
 
   let app = koa();
   app.use(bodyParser());
