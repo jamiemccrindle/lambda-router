@@ -76,6 +76,12 @@ export default () => ({
             PortMappings: [
               {HostPort: 3000, ContainerPort: 3000}
             ],
+            Environment: [
+              {
+                Name: 'AWS_REGION',
+                Value: {Ref: 'AWS::Region'}
+              }
+            ],
             Command: ['server', '-t', {Ref: 'AWS::StackName'}]
           }
         ]
