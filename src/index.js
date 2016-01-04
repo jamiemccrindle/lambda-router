@@ -93,7 +93,7 @@ try {
         .alias('i', 'InstanceType')
         .alias('l', 'SshLocation')
         .alias('e', 'NotificationEmail')
-        .demand(['s', 'k', 'e'])
+        .demand(['s', 'k', 'e', 'n'])
         .help('help')
         .argv;
 
