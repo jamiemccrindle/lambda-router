@@ -24,7 +24,7 @@ try {
           describe: 'Port',
           type: 'number'
         })
-        .option('m', {
+        .option('k', {
           alias: 'Debug',
           demand: false,
           default: false,
