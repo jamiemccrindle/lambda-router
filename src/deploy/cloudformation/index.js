@@ -75,7 +75,8 @@ export default () => ({
             Memory: '300',
             PortMappings: [
               {HostPort: 3000, ContainerPort: 3000}
-            ]
+            ],
+            Command: ['server', '-t', {Ref: 'AWS::StackName'}]
           }
         ]
       }
