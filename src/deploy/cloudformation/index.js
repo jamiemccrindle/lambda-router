@@ -6,6 +6,10 @@ export default () => ({
       Type: 'AWS::EC2::KeyPair::KeyName',
       Description: 'Name of an existing EC2 KeyPair to enable SSH access to the ECS instances'
     },
+    VpcId: {
+      Type: 'AWS::EC2::VPC::Id',
+      Description: 'The VPC to create the cluster in'
+    },
     SubnetId: {
       Type: 'List<AWS::EC2::Subnet::Id>',
       Description: 'List of an existing subnet IDs to use for the load balancer and auto scaling group'
@@ -82,7 +86,7 @@ export default () => ({
                 Value: {Ref: 'AWS::Region'}
               }
             ],
-            Command: ['server', '-t', {Ref: 'AWS::StackName'}]
+            Command: ['server', '-t', {Ref: 'AWS::StackName'}, '-k']
           }
         ]
       }
@@ -92,6 +96,7 @@ export default () => ({
       Type: 'AWS::ElasticLoadBalancing::LoadBalancer',
       Properties: {
         Subnets: {Ref: 'SubnetId'},
+        SecurityGroups : [ { Ref : "LoadBalancerSecurityGroup" } ],
         CrossZone: 'True',
         Listeners: [{
           LoadBalancerPort: '80',
@@ -122,7 +127,14 @@ export default () => ({
             'autoscaling:EC2_INSTANCE_LAUNCH_ERROR',
             'autoscaling:EC2_INSTANCE_TERMINATE',
             'autoscaling:EC2_INSTANCE_TERMINATE_ERROR']
-        }]
+        }],
+        "Tags" : [
+          {
+            "Key" : "Name",
+            "Value" : {Ref: 'AWS::StackName'},
+            "PropagateAtLaunch" : "true"
+          }
+        ]
       },
       CreationPolicy: {
         ResourceSignal: {
@@ -279,6 +291,7 @@ export default () => ({
         InstanceType: {Ref: 'InstanceType'},
         IamInstanceProfile: {Ref: 'EC2InstanceProfile'},
         KeyName: {Ref: 'KeyName'},
+        SecurityGroups: [{Ref: 'InstanceSecurityGroup'}],
         UserData: {
           'Fn::Base64': {
             'Fn::Join': ['', [
@@ -449,6 +462,34 @@ export default () => ({
           "WriteCapacityUnits": "1"
         },
         "TableName": {Ref: "AWS::StackName"}
+      }
+    },
+    "LoadBalancerSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access on port 80",
+        "VpcId" : { "Ref" : "VpcId" },
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "FromPort" : "80",
+          "ToPort" : "80",
+          "CidrIp" : "0.0.0.0/0"
+        } ],
+        "SecurityGroupEgress" : [ {
+          "IpProtocol" : "-1",
+          "CidrIp" : "0.0.0.0/0"
+        } ]
+      }
+    },
+    "InstanceSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Enable HTTP access and SSH access",
+        "VpcId" : { "Ref" : "VpcId" },
+        "SecurityGroupIngress" : [
+          { "IpProtocol" : "tcp", "FromPort" : "3000", "ToPort" : "3000", "SourceSecurityGroupId" : { "Ref" : "LoadBalancerSecurityGroup" } },
+          { "IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SshLocation" } }
+        ]
       }
     }
   },

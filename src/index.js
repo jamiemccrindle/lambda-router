@@ -87,13 +87,14 @@ try {
       argv = yargs
         .alias('s', 'StackName')
         .alias('k', 'KeyName')
+        .alias('v', 'VpcId')
         .alias('n', 'SubnetId')
         .alias('c', 'DesiredCapacity')
         .alias('m', 'MaxSize')
         .alias('i', 'InstanceType')
         .alias('l', 'SshLocation')
         .alias('e', 'NotificationEmail')
-        .demand(['s', 'k', 'e', 'n'])
+        .demand(['s', 'k', 'e', 'n', 'v'])
         .help('help')
         .argv;
 

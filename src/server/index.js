@@ -105,6 +105,7 @@ export async function run(logger, args) {
       } else {
         this.body = 'InternalServerError';
       }
+      this.logger.error(err);
       this.app.emit('error', err, this);
     }
   });
@@ -130,6 +131,9 @@ export async function run(logger, args) {
       if (!route) {
         this.throw(404, 'Not Found')
       }
+      if(args.Debug) {
+        this.logger.info(route);
+      }
       let payload = {
         method: this.request.method,
         headers: this.request.headers,
@@ -152,7 +156,7 @@ export async function run(logger, args) {
       let lambdaResponse = yield lambda.invokePromised(params);
       if (lambdaResponse.FunctionError) {
         let errorMessage = lambdaResponse.LogResult ? new Buffer(lambdaResponse.LogResult, 'base64').toString() : 'Error';
-        logger.error(errorMessage);
+        this.logger.error(errorMessage);
         this.throw(500, errorMessage);
         return;
       }
